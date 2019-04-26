@@ -1,7 +1,5 @@
 #include <SPI.h>
-#include <SoftwareSerial.h>
-#include <Wire.h>
-SoftwareSerial I2CBT(2,4);
+
 #define X_axis 0
 #define Y_axis 1
 #define Z_axis 2
@@ -56,14 +54,13 @@ uint16_t timer;
 uint64_t randomTimer;
 
 bool loading;
-char inByte;
+
 void setup() {
 
   loading = true;
   randomTimer = 0;
   currentEffect = RAIN;
-  Serial.begin(9600);
-  I2CBT.begin(9600);
+
   SPI.begin();
   SPI.beginTransaction(SPISettings(8000000, MSBFIRST, SPI_MODE0));
 
@@ -79,30 +76,29 @@ void loop() {
 
   randomTimer++;
 
-  if (I2CBT.available()) {
+  if (digitalRead(BTN) == LOW) {
     clearCube();
     loading = true;
     timer = 0;
-    inByte = I2CBT.read();
-//    if (currentEffect == TOTAL) {
-//      currentEffect = 0;
-//    }
+    currentEffect++;
+    if (currentEffect == TOTAL) {
+      currentEffect = 0;
+    }
     randomSeed(randomTimer);
     randomTimer = 0;
-    Serial.println(inByte);
     delay(500);
 
   }
 
-  switch (inByte) {
-    case '1': rain(); break;
-    case '2': planeBoing(); break;
-    case '3': sendVoxels(); break;
-    case '4': woopWoop(); break;
-    case '5': cubeJump(); break;
-    case '6': glow(); break;
-    case '7': text("0123456789", 10); break;
-    case '8': lit(); break;
+  switch (currentEffect) {
+    case RAIN: rain(); break;
+    case PLANE_BOING: planeBoing(); break;
+    case SEND_VOXELS: sendVoxels(); break;
+    case WOOP_WOOP: woopWoop(); break;
+    case CUBE_JUMP: cubeJump(); break;
+    case GLOW: glow(); break;
+    case TEXT: text("0123456789", 10); break;
+    case LIT: lit(); break;
 
     default: rain();
   }
@@ -123,7 +119,6 @@ void renderCube() {
 }
 
 void rain() {
-  Serial.println('rain');
   if (loading) {
     clearCube();
     loading = false;
@@ -539,3 +534,4 @@ void clearCube() {
     }
   }
 }
+
